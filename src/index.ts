@@ -38,26 +38,38 @@ app.get('/webhook', (req, res) => {
 // Meta Webhook Mesaj Alma (POST)
 app.post('/webhook', async (req, res) => {
     const body = req.body;
+    console.log("📥 Gelen Webhook İsteği:", JSON.stringify(body, null, 2));
 
     if (body.object === 'instagram') {
-        for (const entry of body.entry) {
-            for (const messaging of entry.messaging) {
-                if (messaging.message && messaging.message.text) {
-                    const senderId = messaging.sender.id;
-                    const messageText = messaging.message.text;
+        try {
+            for (const entry of body.entry) {
+                for (const messaging of entry.messaging) {
+                    if (messaging.message && messaging.message.text) {
+                        const senderId = messaging.sender.id;
+                        const messageText = messaging.message.text;
 
-                    console.log(`Gelen Mesaj (${senderId}): ${messageText}`);
+                        console.log(`💬 Mesaj (${senderId}): ${messageText}`);
 
-                    // AI ile cevap üret
-                    const aiResponse = await aiEngine.generateResponse(messageText);
+                        // AI ile cevap üret
+                        console.log("🤖 AI Cevabı hazırlanıyor...");
+                        const aiResponse = await aiEngine.generateResponse(messageText);
+                        console.log("🤖 AI Cevabı:", aiResponse);
 
-                    // Instagram üzerinden cevap gönder
-                    await igApi.sendMessage(senderId, aiResponse);
+                        // Instagram üzerinden cevap gönder
+                        console.log("📤 Instagram'a gönderiliyor...");
+                        await igApi.sendMessage(senderId, aiResponse);
+                    } else {
+                        console.log("⚠️ Mesaj içeriği veya text yok:", messaging);
+                    }
                 }
             }
+            res.status(200).send('EVENT_RECEIVED');
+        } catch (err) {
+            console.error("❌ Webhook İşleme Hatası:", err);
+            res.sendStatus(500);
         }
-        res.status(200).send('EVENT_RECEIVED');
     } else {
+        console.log("⚠️ Tanınmayan event object:", body.object);
         res.sendStatus(404);
     }
 });
