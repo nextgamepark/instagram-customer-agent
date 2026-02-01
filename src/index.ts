@@ -9,6 +9,10 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
+app.get('/', (req, res) => {
+    res.send('Instagram AI Agent Çalışıyor! 🚀 (Webhook Hazır)');
+});
+
 const aiEngine = new AIEngine();
 const igApi = new InstagramAPI();
 
